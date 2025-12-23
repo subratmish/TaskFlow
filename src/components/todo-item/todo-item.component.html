@@ -1,0 +1,189 @@
+<div 
+  class="group flex flex-col gap-0 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 mb-3 overflow-hidden cursor-pointer"
+  [class.opacity-60]="todo().completed"
+  (click)="toggleExpand()"
+>
+  <div class="flex gap-3 p-4">
+    <!-- Checkbox Section -->
+    <div class="pt-1">
+      <button
+        (click)="onToggle($event)"
+        class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        [class.border-slate-300]="!todo().completed"
+        [class.hover:border-indigo-500]="!todo().completed"
+        [class.bg-indigo-500]="todo().completed"
+        [class.border-indigo-500]="todo().completed"
+        aria-label="Toggle completion"
+      >
+        @if (todo().completed) {
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
+        }
+      </button>
+    </div>
+
+    <!-- Content Section -->
+    <div class="flex-1 min-w-0">
+      
+      <!-- EDIT MODE -->
+      @if (isEditing()) {
+        <div class="flex flex-col gap-3" (click)="$event.stopPropagation()">
+          <input 
+            [formControl]="editTitle"
+            type="text" 
+            class="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-800 font-medium"
+            placeholder="Task title"
+            (keydown.enter)="saveEdit()"
+          />
+          <div class="flex flex-wrap items-center gap-2">
+            <input 
+              [formControl]="editDate"
+              type="date"
+              class="px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:outline-none focus:border-indigo-500"
+            />
+            
+            <select [formControl]="editPriority" class="px-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded focus:outline-none focus:border-indigo-500">
+              <option value="low">Low Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="high">High Priority</option>
+            </select>
+
+            <div class="flex-1"></div>
+            <button (click)="cancelEditing()" class="text-xs font-medium text-slate-500 hover:text-slate-700 px-2 py-1">Cancel</button>
+            <button (click)="saveEdit()" class="text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 px-3 py-1 rounded">Save</button>
+          </div>
+        </div>
+      } 
+      
+      <!-- VIEW MODE -->
+      @else {
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between items-start gap-2">
+            <h3 
+              class="text-base font-medium text-slate-800 break-words leading-tight transition-all"
+              [class.line-through]="todo().completed"
+              [class.text-slate-500]="todo().completed"
+            >
+              {{ todo().title }}
+            </h3>
+            
+            <!-- Action Buttons (Edit/Delete) -->
+            <div class="flex items-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+              <button 
+                (click)="startEditing($event)"
+                class="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors"
+                title="Edit task"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button 
+                (click)="onDelete($event)"
+                class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="Delete task"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Metadata Row -->
+          <div class="flex flex-wrap items-center gap-2 mt-1">
+            <!-- Priority Badge -->
+             @if (!todo().completed) {
+              <span 
+                class="text-[10px] font-semibold px-1.5 py-0.5 rounded border uppercase tracking-wider"
+                [class.bg-green-50]="todo().priority === 'low'"
+                [class.text-green-700]="todo().priority === 'low'"
+                [class.border-green-200]="todo().priority === 'low'"
+                [class.bg-blue-50]="todo().priority === 'medium'"
+                [class.text-blue-700]="todo().priority === 'medium'"
+                [class.border-blue-200]="todo().priority === 'medium'"
+                [class.bg-orange-50]="todo().priority === 'high'"
+                [class.text-orange-700]="todo().priority === 'high'"
+                [class.border-orange-200]="todo().priority === 'high'"
+              >
+                {{ todo().priority }}
+              </span>
+             }
+
+            @if (todo().dueDate) {
+              <div 
+                class="flex items-center gap-1 text-xs font-medium"
+                [class.text-red-500]="!todo().completed && isOverdue(todo().dueDate)"
+                [class.text-slate-500]="todo().completed || !isOverdue(todo().dueDate)"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{{ todo().dueDate | date:'MMM d, y' }}</span>
+              </div>
+            }
+
+            @if (todo().comments.length > 0) {
+              <div class="flex items-center gap-1 text-xs text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                </svg>
+                <span>{{ todo().comments.length }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Comments Section (Collapsible) -->
+  @if (isExpanded() && (todo().comments.length > 0 || (!todo().completed && !isEditing()))) {
+    <div 
+      class="bg-slate-50/50 border-t border-slate-100 px-4 py-3 space-y-3 animate-fade-in"
+      (click)="$event.stopPropagation()"
+    >
+      
+      <!-- Existing Comments -->
+      @if (todo().comments.length > 0) {
+        <div class="space-y-2">
+          @for (comment of todo().comments; track comment.id) {
+            <div class="flex gap-2 group/comment">
+              <div class="flex-shrink-0 mt-1">
+                <div class="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm text-slate-600 whitespace-pre-wrap break-words leading-relaxed">{{ comment.text }}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">{{ comment.createdAt | date:'short' }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Add Comment Input -->
+      @if (!todo().completed && !isEditing()) {
+        <div class="relative mt-2">
+          <input 
+            [formControl]="newCommentControl"
+            (keydown.enter)="submitComment()"
+            type="text" 
+            placeholder="Add a comment..." 
+            class="w-full pl-3 pr-10 py-1.5 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 placeholder:text-slate-400 transition-colors"
+            autoFocus
+          />
+          <button 
+            (click)="submitComment()"
+            [disabled]="!newCommentControl.value.trim()"
+            class="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-indigo-500 hover:text-indigo-700 disabled:text-slate-300 disabled:cursor-default transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

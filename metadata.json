@@ -1,0 +1,5 @@
+{
+  "name": "TaskFlow",
+  "description": "A streamlined todo application to manage tasks with due dates and detailed comments. Features status filtering and local persistence.",
+  "requestFramePermissions": []
+}
